@@ -31,16 +31,16 @@ end
 
 """
     right_mean(x::Vector, N::Int)
-Return mean on staggered grid, given by:
 
+Return (right-sided) mean on staggered grid.
 """
 function right_mean(x::Vector, N::Int)
     return (view(x, 1:N-1) + view(x, 2:N)) ./ 2
 end
 
-function forward_sia(sstruct::SuperStruct)
-    nt = Int(sstruct.p.tspan[2] ÷ sstruct.omega.dt)
-    ht = zeros(sstruct.p.N, nt)
+function forward_sia(sstruct::SuperStruct) # ; saving_stride::Int = 10
+    nt = Int(sstruct.omega.tspan[2] ÷ sstruct.omega.dt)
+    ht = zeros(sstruct.omega.N, nt)
     for k in 1:nt
         forwardstep_sia!(sstruct, sstruct.omega.dt)
         ht[:, k] .= copy(sstruct.iss.h)
@@ -79,6 +79,11 @@ function forwardstep_sia!(
     for j in N-1:-1:1
         sstruct.iss.h[j] = g[j] + f[j] * h[j+1]
     end
+
+    if p.isostasy_on
+        forwardstep_isostasy!(sstruct)
+    end
+
     return nothing
 end
 
@@ -86,16 +91,9 @@ function compute_mass_balance(N::Int)
     return fill(0.3, N)
 end
 
-function gaussian_mean(x::Vector)
-
-
-function normed_gaussian(x, mu, sigma)
-    gaussian = exp( (x-mu)^2 / sigma )
-    return gaussian ./ maximum(gaussian)
-end
-
-function dbdt!(dbdt, b, sstruct, t)
-    return 1/p.tau .* (sstruct.iss.b .-
-        (sstruct.rho_ice / sstruct.rho_mantle) .*
-        gaussian_mean(sstruct.iss.h))
+function forwardstep_isostasy!(sstruct)
+    omega, p, iss = sstruct.omega, sstruct.p, sstruct.iss
+    sstruct.iss.b .+= omega.dt/p.tau .* (b .- (p.rho_ice / p.rho_mantle) .*
+        gaussian_filter(omega.xH, iss.h))
+    return nothing
 end

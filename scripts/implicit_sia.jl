@@ -4,19 +4,13 @@ using CairoMakie
 N = 51
 L = 1.5e6
 tspan = (0.0, 20e3)
+dt = 10.0
 
-omega = ComputationDomain(L, N, tspan)
+omega = ComputationDomain(L, N, tspan, dt)
 p = Params()
 iss = IcesheetState(N)
 sstruct = SuperStruct(p, omega, iss)
-dt = 10.0
-
-nt = Int(tspan[2] ÷ dt)
-ht = zeros(N, nt)
-for k in 1:nt
-    forwardstep_sia!(sstruct, dt)
-    ht[:, k] .= copy(sstruct.iss.h)
-end
+ht = forward_sia(sstruct)
 
 idx = Observable(1)
 stride = 10

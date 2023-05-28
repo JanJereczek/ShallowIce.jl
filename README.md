@@ -1,4 +1,6 @@
-# sia
+# ShallowIce.jl
+
+## Getting started
 
 This code base is using the [Julia Language](https://julialang.org/) and
 [DrWatson](https://juliadynamics.github.io/DrWatson.jl/stable/)
@@ -28,3 +30,7 @@ using DrWatson
 @quickactivate "sia"
 ```
 which auto-activate the project and enable local path handling from DrWatson.
+
+## What is it about?
+
+An SIA model made for the glaciology summer school in Karthaus. Enjoy :)

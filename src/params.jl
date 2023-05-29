@@ -1,5 +1,6 @@
 struct Params{T<:AbstractFloat}
     A::T
+    accumulation::Function
     calving_constant::T
     floating_fraction::T
     g::T
@@ -16,6 +17,7 @@ end
 
 function Params(;
     A = 1e-16,
+    accumulation = constant_accumulation,
     calving_constant = 27.1,
     floating_fraction = 0.15,
     g = 9.81,
@@ -29,7 +31,7 @@ function Params(;
 )
     fd = 2*A / (n+2) * (rho_ice * g)^n 
     fs = 10 * fd
-    return Params(A, calving_constant, floating_fraction, g, isostasy_on,
+    return Params(A, accumulation, calving_constant, floating_fraction, g, isostasy_on,
         n, rho_ice, rho_water, rho_mantle, sliding_constant, tau, fd, fs)
 end
 

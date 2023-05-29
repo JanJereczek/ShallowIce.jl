@@ -67,8 +67,14 @@ function forwardstep_sia!(
     f, g = iss.f, iss.g
 
     dsdx = fdx( h + b, dx, N )
+    a_raw = p.accumulation(omega.xH)
+    a = a_raw .* ((h .> 0) .| (a_raw .> 0))
+
     d = sstruct.p.fd .* abs.(dsdx) .^ (n - 1) .* right_mean(h, N) .^ (n + 2)
-    a = compute_mass_balance(N)
+    if omega.bc == "zero_flow"
+        d[1] = 0.0
+        d[end] = 0.0
+    end
 
     for j in 2:N-1
         sstruct.iss.alpha[j] = d[j-1] * dtdx
@@ -84,15 +90,15 @@ function forwardstep_sia!(
         sstruct.iss.h[j] = g[j] + f[j] * h[j+1]
     end
 
+    if omega.bc == "zero_flow"
+        sstruct.iss.h[1] = g[1] + f[1] * h[2]
+    end
+
     if p.isostasy_on
         forwardstep_isostasy!(sstruct)
     end
 
     return nothing
-end
-
-function compute_mass_balance(N::Int)
-    return fill(0.3, N)
 end
 
 function forwardstep_isostasy!(sstruct)

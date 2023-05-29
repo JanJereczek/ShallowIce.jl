@@ -1,6 +1,8 @@
 mutable struct IcesheetState{T<:AbstractFloat}
     h::Vector{T}        # thickness
     b::Vector{T}        # bedrock
+    h0::Vector{T}
+    b0::Vector{T}
     alpha::Vector{T}    # for semi-implicit scheme
     beta::Vector{T}     # for semi-implicit scheme
     gamma::Vector{T}    # for semi-implicit scheme
@@ -20,7 +22,7 @@ function IcesheetState(
     f = fill(0.0, N),
     g = fill(0.0, N),
 )
-    return IcesheetState(h, b, alpha, beta, gamma, delta, f, g)
+    return IcesheetState(h, b, copy(h), copy(b), alpha, beta, gamma, delta, f, g)
 end
 
 struct SuperStruct
@@ -41,11 +43,13 @@ end
 function forward_sia(sstruct::SuperStruct) # ; saving_stride::Int = 10
     nt = Int(sstruct.omega.tspan[2] ÷ sstruct.omega.dt)
     ht = zeros(sstruct.omega.N, nt)
+    bt = similar(ht)
     for k in 1:nt
         forwardstep_sia!(sstruct, sstruct.omega.dt)
         ht[:, k] .= copy(sstruct.iss.h)
+        bt[:, k] .= copy(sstruct.iss.b)
     end
-    return ht
+    return ht, bt
 end
 
 function forwardstep_sia!(
@@ -93,7 +97,7 @@ end
 
 function forwardstep_isostasy!(sstruct)
     omega, p, iss = sstruct.omega, sstruct.p, sstruct.iss
-    sstruct.iss.b .+= omega.dt/p.tau .* (b .- (p.rho_ice / p.rho_mantle) .*
-        gaussian_filter(omega.xH, iss.h))
+    sstruct.iss.b .+= omega.dt/p.tau .* (iss.b0 .- iss.b .- (p.rho_ice / p.rho_mantle) .*
+        gaussian_filter(omega.xH, iss.h) )
     return nothing
 end

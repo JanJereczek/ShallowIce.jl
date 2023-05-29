@@ -3,6 +3,7 @@ using DrWatson
 using OrdinaryDiffEq
 
 # Here you may include files from the source directory
+include(srcdir("utils.jl"))
 include(srcdir("domain.jl"))
 include(srcdir("params.jl"))
 include(srcdir("derivatives.jl"))

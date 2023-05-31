@@ -4,6 +4,7 @@ authors = ["Jan Swierczek-Jereczek"]
 [deps]
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 DrWatson = "634d3b9d-ee7a-5ddf-bec9-22491ea816e1"
+JLD2 = "033835bb-8acc-5ee8-8aae-3f567f8a3819"
 OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
 
 [compat]

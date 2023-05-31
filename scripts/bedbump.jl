@@ -1,11 +1,9 @@
 include("intro.jl")
 using CairoMakie
 
-function main(; N = 101, tmax = 80e3)
-    N = 101
+function main(; N = 101, tend = 80e3, dt = 2, dt_out = 100)
     L = 1.5e6
-    tspan = (0.0, tmax)
-    dt = 2.0
+    tspan = (0.0, tend)
     bc = "zero_flow"
 
     omega = ComputationDomain(L, N, tspan, dt, bc)
@@ -19,7 +17,6 @@ function main(; N = 101, tmax = 80e3)
     
     p = Params(isostasy_on = true, accumulation = linear_accumulation)
     iss = IcesheetState(N, h0, b0)
-    dt_out = 100
     t_out = Int.(collect(tspan[1]:dt_out:tspan[2]))
     y_out = fill(1, length(t_out))
     sstruct = SuperStruct(p, omega, iss)
@@ -27,10 +24,8 @@ function main(; N = 101, tmax = 80e3)
 
     idx = Observable(1)
     stride = 1
-    hplot = @lift(ht[:, $idx])
     bplot = @lift(bt[:, $idx])
     splot = @lift((bt .+ ht)[:, $idx])
-    yplot = @lift(y_out[1:$idx])
     tplot = @lift("t = $(t_out[$idx]) yr")
     x = Int.(omega.xH .÷ 1000)
 

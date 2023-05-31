@@ -22,10 +22,10 @@ p = Params(isostasy_on = true, accumulation = linear_accumulation)
 iss = IcesheetState(N, h0, b0)
 
 sstruct = SuperStruct(p, omega, iss)
-ht, bt = forward_sia(sstruct)
+ht, bt = forward_sia(sstruct, dt_out = 100)
 
 idx = Observable(1)
-stride = 100
+stride = 1
 hplot = @lift(ht[:, $idx])
 bplot = @lift(bt[:, $idx])
 splot = @lift((bt .+ ht)[:, $idx])

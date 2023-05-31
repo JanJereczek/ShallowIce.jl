@@ -40,16 +40,23 @@ function right_mean(x::Vector, N::Int)
     return (view(x, 1:N-1) + view(x, 2:N)) ./ 2
 end
 
-function forward_sia(sstruct::SuperStruct) # ; saving_stride::Int = 10
+function forward_sia(sstruct::SuperStruct; dt_out::Real = 10.0)
     nt = Int(sstruct.omega.tspan[2] ÷ sstruct.omega.dt)
-    ht = zeros(sstruct.omega.N, nt)
-    bt = similar(ht)
+    nt_out = Int(sstruct.omega.tspan[2] ÷ dt_out)
+
+    ht_out = zeros(sstruct.omega.N, nt_out)
+    bt_out = similar(ht_out)
+    k_out = 1
+
     for k in 1:nt
         forwardstep_sia!(sstruct, sstruct.omega.dt)
-        ht[:, k] .= copy(sstruct.iss.h)
-        bt[:, k] .= copy(sstruct.iss.b)
+        if k*sstruct.omega.dt > k_out*dt_out
+            ht_out[:, k_out] .= copy(sstruct.iss.h)
+            bt_out[:, k_out] .= copy(sstruct.iss.b)
+            k_out += 1
+        end
     end
-    return ht, bt
+    return ht_out, bt_out
 end
 
 function forwardstep_sia!(

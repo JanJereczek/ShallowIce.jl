@@ -1,7 +1,7 @@
 include("intro.jl")
 using CairoMakie
 
-function main(; N = 101, tmax = 60e3)
+function main(; N = 101, tmax = 80e3)
     N = 101
     L = 1.5e6
     tspan = (0.0, tmax)

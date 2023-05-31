@@ -22,7 +22,8 @@ function IcesheetState(
     f = fill(0.0, N),
     g = fill(0.0, N),
 )
-    return IcesheetState(h, b, copy(h), copy(b), alpha, beta, gamma, delta, f, g)
+    return IcesheetState(copy(h), copy(b), copy(h), copy(b),
+        alpha, beta, gamma, delta, f, g)
 end
 
 struct SuperStruct

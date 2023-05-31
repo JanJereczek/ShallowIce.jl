@@ -6,7 +6,7 @@ function gaussian_filter(x::Vector, y::Vector)
     end
 
     yfilt = similar(y)
-    sigma = 2e3
+    sigma = 100e3
     for i in eachindex(x)
         yfilt[i] = sum(y .* normed_gaussian(x, x[i], sigma) )
     end

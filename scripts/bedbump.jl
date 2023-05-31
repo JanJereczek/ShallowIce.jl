@@ -3,13 +3,13 @@ using CairoMakie
 
 N = 101
 L = 1.5e6
-tspan = (0.0, 20e3)
-dt = 1.0
+tspan = (0.0, 100e3)
+dt = 2.0
 bc = "zero_flow"
 
 omega = ComputationDomain(L, N, tspan, dt, bc)
-bedhead = 3e3               # m
-bedslope = -0.003           # (m/m)
+bedhead = 2e3               # m
+bedslope = -0.002           # (m/m)
 bedbump_center = 1e6        # m
 bedbump_height = 500.0      # m
 bedbump_width = 100e3       # m

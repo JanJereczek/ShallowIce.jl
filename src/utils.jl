@@ -22,7 +22,7 @@ function constant_accumulation(x::Vector; a::Real = 0.3)
     return fill(a, length(x))
 end
 
-function linear_accumulation(x::Vector; a1 = 0.3, a2 = -0.2)
+function linear_accumulation(x::Vector; a1 = 0.25, a2 = -0.4)
     m = (a2-a1) / maximum(x)
     return m .* x .+ a1
 end

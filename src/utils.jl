@@ -18,11 +18,17 @@ function normed_gaussian(x::Vector, mu::Real, sigma::Real)
     return gaussian ./ sum(gaussian)
 end
 
-function constant_accumulation(t::Real, x::Vector; a::Real = 0.3)
-    return fill(a, length(x))
+function constant_accumulation(sstruct::SuperStruct; a::Real = 0.3)
+    return fill(a, sstruct.omega.N)
 end
 
-function linear_accumulation(t::Real, x::Vector; a1 = 0.25, a2 = -0.4)
-    m = (a2-a1) / maximum(x)
-    return m .* x .+ a1
+function linear_accumulation(sstruct::SuperStruct; a1 = 0.25, a2 = -0.4)
+    m = (a2-a1) / maximum(sstruct.omega.xH)
+    return m .* sstruct.omega.xH .+ a1
+end
+
+function zero_bc!(x::Vector{T}) where {T<:Real}
+    x[0] = T(0)
+    x[end] = T(0)
+    return nothing
 end

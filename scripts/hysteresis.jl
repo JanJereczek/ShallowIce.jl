@@ -1,33 +1,41 @@
 include("intro.jl")
 using JLD2
 
-function a_shift(
-    t::Real,
-    amax::Real = 0.0025;
-    t_a_up::Real = 900e3,
-    t_a_const::Real = 1000e3,
-    t_a_down::Real = 1900e3,
-)
-    m_up = amax / t_a_up
-    m_down = -m_up
-    if t < t_a_up
-        return m_up * t
-    elseif t < t_a_const
-        return amax
-    elseif t < t_a_down
-        return m_down * (t-t_a_down)
-    else
-        return 0.0
-    end
+function linear_smb(z::Vector; zeq = 1000, c = 0.025 / 3000)
+    return c .* (z.-zeq)
 end
 
-# t = 0:100:2e6
-# lines(a_shift.(t))
+function zeq_shift(
+    t::Real;
+    zeq_min::Real = 1900,
+    zeq_max::Real = 2100,
+    t_zeq_down::Real = 900e3,
+    t_zeq_const::Real = 1000e3,
+    t_zeq_up::Real = 1900e3,
+)
+    dz = zeq_max - zeq_min
+    m = dz / t_zeq_down
+    if t < t_zeq_down
+        return zeq_max - m * t
+    elseif t < t_zeq_const
+        return zeq_min
+    elseif t < t_zeq_up
+        return zeq_min .+ m * (t-t_zeq_const)
+    else
+        return zeq_max
+    end
+end
+t = 0:100:2e6
+using CairoMakie
+lines(zeq_shift.(t))
+hyst_smb(sstruct::SuperStruct) = hyst_smb(sstruct.iss.t, sstruct.iss.b + sstruct.iss.h)
+hyst_smb(t, z) = linear_smb(z, zeq = zeq_shift(t))
 
-function main(; N = 101, tend = 2e6, dt = 2.0, dt_out = 1000.0)
-    L = 1.5e6
+function main(; N = 101, tend = 2e6, dt = 2.0, dt_out = 1000.0, isostasy_on = false)
+    L = 1.5e6  
     tspan = (0.0, tend)
     bc = "zero_flow"
+    t_out = Int.(collect(tspan[1]:dt_out:tspan[2]))
 
     omega = ComputationDomain(L, N, tspan, dt, bc)
     bedhead = 2e3               # m
@@ -38,19 +46,14 @@ function main(; N = 101, tend = 2e6, dt = 2.0, dt_out = 1000.0)
     h0 = fill(0.0, N)
     b0 = bumpy_bed(omega.xH, bedhead, bedslope, bedbump_center, bedbump_height, bedbump_width)
 
-    a1 = 0.25
-    a2 = -0.4
-    init_a1, init_a2 = 0.0, a2-a1
-    shifting_linear_accumulation(t, x) = a_shift(t, a1) .+
-        linear_accumulation(t, x, a1 = init_a1, a2 = init_a2)
-
-    p = Params(isostasy_on = true, accumulation = shifting_linear_accumulation)
+    p = Params(accumulation = hyst_smb, isostasy_on = isostasy_on)
     iss = IcesheetState(N, h0, b0)
     sstruct = SuperStruct(p, omega, iss)
     ht, bt = forward_sia(sstruct, dt_out = dt_out)
     t_out = Int.(collect(tspan[1]:dt_out:tspan[2]))
-    a_out = [shifting_linear_accumulation(t, omega.xH) for t in t_out]
-    jldsave("data/hysteresis_N=$(N)_tend=$(tend).jld2"; ht, bt, t_out, a_out)
+    z_out = zeq_shift.(t_out)
+    jldsave("data/hysteresis_N=$(N)_tend=$(tend)_isostasy=$(isostasy_on).jld2";
+        ht, bt, t_out, z_out)
 end
 
-main(N = 51, dt = 10.0)
+main(N = 76, dt = 5.0)

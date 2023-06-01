@@ -55,7 +55,10 @@ function forward_sia(sstruct::SuperStruct; dt_out::Real = 10.0)
         if k*sstruct.omega.dt >= k_out*dt_out
             ht_out[:, k_out] .= copy(sstruct.iss.h)
             bt_out[:, k_out] .= copy(sstruct.iss.b)
+            # if rem(k_out, 10_000) == 0
             println("t = $(Int(k_out*dt_out))")
+            # end
+            # println("max thickness: $(maximum(sstruct.iss.h))")
             k_out += 1
         end
     end
@@ -75,11 +78,13 @@ function forwardstep_sia!(sstruct::SuperStruct)
 
     # Compute surface slope and mass balance
     dsdx = fdx( h + b, dx, N )
-    a_raw = p.accumulation(iss.t, omega.xH)
+    a_raw = p.accumulation(sstruct)
     a = a_raw .* ((h .> 0) .| (a_raw .> 0))
 
     # Compute diffusion
     d = sstruct.p.fd .* abs.(dsdx) .^ (n - 1) .* right_mean(h, N) .^ (n + 2)
+    ds = sstruct.p.fs .* abs.(dsdx) .^ (n - 1) .* right_mean(h, N) .^ n
+
     if omega.bc == "zero_flow"
         d[1] = 0.0
         d[end] = 0.0

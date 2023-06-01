@@ -52,7 +52,7 @@ function forward_sia(sstruct::SuperStruct; dt_out::Real = 10.0)
 
     for k in 1:nt
         forwardstep_sia!(sstruct)
-        if k*sstruct.omega.dt > k_out*dt_out
+        if k*sstruct.omega.dt >= k_out*dt_out
             ht_out[:, k_out] .= copy(sstruct.iss.h)
             bt_out[:, k_out] .= copy(sstruct.iss.b)
             println("t = $(Int(k_out*dt_out))")

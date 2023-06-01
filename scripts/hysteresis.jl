@@ -1,5 +1,5 @@
 include("intro.jl")
-using CairoMakie, JLD2
+using JLD2
 
 function a_shift(
     t::Real,
@@ -24,7 +24,7 @@ end
 # t = 0:100:2e6
 # lines(a_shift.(t))
 
-function main(; N = 101, tend = 1e6, dt = 2.0, dt_out = 1000.0)
+function main(; N = 101, tend = 2e6, dt = 2.0, dt_out = 1000.0)
     L = 1.5e6
     tspan = (0.0, tend)
     bc = "zero_flow"
@@ -49,7 +49,8 @@ function main(; N = 101, tend = 1e6, dt = 2.0, dt_out = 1000.0)
     sstruct = SuperStruct(p, omega, iss)
     ht, bt = forward_sia(sstruct, dt_out = dt_out)
     t_out = Int.(collect(tspan[1]:dt_out:tspan[2]))
-    jldsave("hysteresis_N=$(N)_tend=$(tend).jld2"; ht, bt, t_out)
+    a_out = [shifting_linear_accumulation(t, omega.xH) for t in t_out]
+    jldsave("data/hysteresis_N=$(N)_tend=$(tend).jld2"; ht, bt, t_out, a_out)
 end
 
-main()
+main(N = 51, dt = 10.0)
